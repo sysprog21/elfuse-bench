@@ -187,7 +187,13 @@
                 byCommit.set(d.commit.id, point);
               }
             }
-            const dataset = [...byCommit.values()].sort((a, b) => a.date - b.date);
+            // elfuse: a commit sits at its commit time, which follows its order
+            // on main, not at the time a run published it, so a run that
+            // publishes late, or a rerun that adds a commit's missing points,
+            // stays before a later merge. A tie falls back to the publish time.
+            const committed = d => Date.parse(d.commit.timestamp) || d.date;
+            const dataset = [...byCommit.values()]
+              .sort((a, b) => committed(a) - committed(b) || a.date - b.date);
             const value = (d, key) => (d[key] ? d[key].value : null);
             const color = toolColors[headSet.length > 0 ? headSet[0].tool : '_'];
             const datasets = [
